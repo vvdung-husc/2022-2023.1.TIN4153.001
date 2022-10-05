@@ -6,6 +6,8 @@
 
 int main(int argc, char const *argv[])
 {
+  LOG_IT("NHAN NOI DUNG TRANG WEB\n");
+  system("pause");
   LOG_IT("1. Khoi tao WinSocket\n");
   WSADATA wsaData;
   WORD wVersion = MAKEWORD(2,2);
@@ -42,7 +44,7 @@ int main(int argc, char const *argv[])
     return 1;
   }
 
-  LOG_WT("Connected to server. Press Enter to get content %s \n",url.c_str());
+  LOG_WT("Da ket noi server. Nhan enter de nhan noi dung site: %s \n",url.c_str());
   system("pause");
 
   std::string request = "GET / HTTP/1.1\r\nHost: " + url + "\r\nConnection: close\r\n\r\n";
