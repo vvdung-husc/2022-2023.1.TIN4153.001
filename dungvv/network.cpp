@@ -80,6 +80,55 @@ int getContentSite(const std::string& host,int port){
   return 0;
 }
 
+std::string getContentSite(const std::string& host,int port, std::string* header){
+  std::string ip = getIpAddress(host);
+  SOCKET sockConnect;
+  sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (sockConnect == INVALID_SOCKET) {
+    LOG_ET("socket() loi: %ld\n", WSAGetLastError());
+    return std::string();
+  }
+
+  sockaddr_in srvService;
+  srvService.sin_family = AF_INET;
+  srvService.sin_addr.s_addr = inet_addr(ip.c_str());
+  srvService.sin_port = htons(port);
+  
+  // Connect to server.
+  int iResult = connect(sockConnect, (SOCKADDR *) &srvService, sizeof (srvService));
+  if (iResult == SOCKET_ERROR) {
+    LOG_ET("connect() error: %ld\n", WSAGetLastError());
+    closesocket(sockConnect);
+    return std::string();;
+  }
+
+  std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
+  
+  if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
+    LOG_ET("send() failed: %ld\n",WSAGetLastError());
+  }
+  
+  std::string txt;
+  char buffer[4097];
+  int n, total = 0;
+  std::string raw_site;
+  while((n = recv(sockConnect, buffer, 4096, 0)) > 0){
+    total += n;
+    buffer[n] = 0;
+    txt.append(buffer);
+    //LOG_D("%s",buffer);
+  }
+
+  closesocket(sockConnect);
+
+  size_t pos = txt.find("\r\n\r\n");//4 kytu  
+  //LOG_ET("POS:%zu\n",pos);
+  if (header){
+    *header = txt.substr(0,pos);
+  }  
+  return std::string(txt.substr(pos + 4));//4ky tu "\r\n\r\n"
+}
+
 int main(int argc, char const *argv[])
 {
   LOG_IT("1. Khoi tao WinSocket\n");
@@ -101,12 +150,17 @@ int main(int argc, char const *argv[])
   getIpAddress("facebook.com");
   getIpAddress("vtv.vn");
 
-  LOG_DT("NHAN NOI DUNG TRANG WEB\n");
-  system("pause");
-  getContentSite("oj.husc.edu.vn",80);
+  //LOG_DT("NHAN NOI DUNG TRANG WEB\n");
+  //system("pause");
+  const char* host = "oj.husc.edu.vn";
+  std::string header;
+  std::string content = getContentSite(host,80,&header);
+
+  LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
+  LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
 
   WSACleanup();
 
-  LOG_D("");
+  LOG_D("--------------\n");
   return 0;
 }
