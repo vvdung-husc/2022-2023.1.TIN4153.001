@@ -4,19 +4,22 @@
 #include "windows.h"
 #include "string"
 
-int main(int argc, char const *argv[])
-{
-  LOG_IT("NHAN NOI DUNG TRANG WEB\n");
-  system("pause");
-  LOG_IT("1. Khoi tao WinSocket\n");
-  WSADATA wsaData;
-  WORD wVersion = MAKEWORD(2,2);
-  int err = WSAStartup(wVersion,&wsaData);
-  if (err != 0) {
-    LOG_ET("WSAStartup() loi: %d\n", err);
-    return 1;
+std::string getIpAddress(const std::string& domain){
+  struct hostent *remoteHost;
+  remoteHost = gethostbyname(domain.c_str());
+  if (remoteHost == NULL) {
+    LOG_ET("gethostbyname() error: %ld\n", WSAGetLastError());
+    return std::string();
   }
-  LOG_DT("Winsock khoi tao thanh cong\n");
+  struct in_addr addr;
+  addr.s_addr = *(u_long *) remoteHost->h_addr_list[0];
+
+  std::string ip(inet_ntoa(addr));
+  LOG_IT("IP OF DOMAIN [%s] => [%s]\n",domain.c_str(),ip.c_str());
+  return ip;
+}
+
+int getContentSite_test(){
   LOG_IT("2. Tao SOCKET ket noi (Client)\n");
   SOCKET sockConnect;
   sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -25,6 +28,7 @@ int main(int argc, char const *argv[])
     WSACleanup();
     return 1;
   }
+
   LOG_DT("socket() OKIE\n");
   LOG_IT("3. Chuan bi server ket noi\n");
   std::string url = "oj.husc.edu.vn";
@@ -71,6 +75,32 @@ int main(int argc, char const *argv[])
     WSACleanup();
     return 1;
   }
+
+  return 0;
+}
+
+int main(int argc, char const *argv[])
+{
+  //LOG_IT("NHAN NOI DUNG TRANG WEB\n");
+  //system("pause");
+  LOG_IT("1. Khoi tao WinSocket\n");
+  WSADATA wsaData;
+  WORD wVersion = MAKEWORD(2,2);
+  int err = WSAStartup(wVersion,&wsaData);
+  if (err != 0) {
+    LOG_ET("WSAStartup() loi: %d\n", err);
+    return 1;
+  }
+  LOG_DT("Winsock khoi tao thanh cong\n");
+
+  //getContentSite_test();
+
+  //const char* domain = "oj.husc.edu.vn";
+  //std::string ip = getIpAddress(domain);
+  getIpAddress("oj.husc.edu.vn");
+  getIpAddress("google.com");
+  getIpAddress("facebook.com");
+  getIpAddress("vtv.vn");
 
   WSACleanup();
 
