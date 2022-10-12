@@ -2,8 +2,7 @@
 set CC=g++
 set SRC_COMMON=../_COMMON
 
-%CC% network.cpp ^
+%CC% BaiTap1.cpp ^
      %SRC_COMMON%/Log.cpp ^
--l ws2_32 ^
--o network.exe
+-o Bt1.exe
 REM g++ main.cpp ../../_src/Log.cpp -o t.exe
