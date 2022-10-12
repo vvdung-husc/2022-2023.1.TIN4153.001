@@ -34,10 +34,8 @@ int main(int argc, char const *argv[])
   getIpAddress("google.com");
   getIpAddress("facebook.com");
   getIpAddress("vtv.vn");
+  getIpAddress("husc.edu.vn");
 
-  LOG_DT("NHAN NOI DUNG TRANG WEB\n");
-  system("pause");
- 
 
   WSACleanup();
 
