@@ -35,8 +35,6 @@ int main(int argc, char const *argv[])
   getIpAddress("facebook.com");
   getIpAddress("vtv.vn");
   getIpAddress("husc.edu.vn");
-  getIpAddress("github.com");
-  getIpAddress("zalo.me");
 
 
   WSACleanup();
