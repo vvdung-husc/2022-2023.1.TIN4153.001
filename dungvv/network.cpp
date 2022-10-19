@@ -174,6 +174,14 @@ void saveHost2Html(const std::string& host,int port,std::string path, const std:
   fs.close();
 }
 
+void saveURL2JPG(const std::string& urlJPG, const std::string& file){
+  //thử tìm hiểu đoạn code để save file ảnh
+  LOG_W("Bài tập: lưu file ảnh từ website\n");
+  LOG_I("URL [%s]\n",urlJPG.c_str());  
+  LOG_E("1. Tìm hiểu các tài liệu về lập trình lưu file JPG (nhị phân) trên google\n");
+  LOG_E("2. Giải thích cách làm trong file WORD và đưa lên github trong thư mục của từng thành viên\n");
+}
+
 void showUri(const std::string& url){
   Uri u = Uri::Parse(url);
   LOG_I("URL [%s]\n",url.c_str());
@@ -234,11 +242,19 @@ int main(int argc, char const *argv[])
   // LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
 
   //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
-  Uri u = Uri::Parse("http://tuyensinh.husc.edu.vn/category/quyche/");
-  saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
-  saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
-  
+  std::string url = "http://tuyensinh.husc.edu.vn/wp-content/uploads/2022/08/043775219f9f5dc1048e.jpg";//"http://tuyensinh.iuh.edu.vn/thiSinh";
+  Uri u = Uri::Parse(url);
+  //saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),"/","iuh.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"thisinh.html");
+   
 
+  //showUri("http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG");
+  showUri(url);
+  
+  saveURL2JPG(url, "image.jpg");  
+  
   WSACleanup();
 
   
