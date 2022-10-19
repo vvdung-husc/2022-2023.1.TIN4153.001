@@ -7,23 +7,13 @@
 #include <fstream>
 #include "uri.h"
 
-int main(int argc, char const *argv[])
-{
-  LOG_IT("NHAN NOI DUNG TRANG WEB\n");
-  system("pause");
-  LOG_IT("1. Khoi tao WinSocket\n");
-  WSADATA wsaData;
-  
-  WORD wVersion = MAKEWORD(2,2);
-  int err = WSAStartup(wVersion,&wsaData);
-  if (err != 0) {
-    LOG_ET("WSAStartup() loi: %d\n", err);
-    return 1;
+std::string getIpAddress(const std::string& domain){
+  struct hostent *remoteHost;
+  remoteHost = gethostbyname(domain.c_str());
+  if (remoteHost == NULL) {
+    LOG_ET("gethostbyname() error: %ld\n", WSAGetLastError());
+    return std::string();
   }
-<<<<<<< HEAD
-  LOG_DT("Winsock khoi tao thanh cong\n");
-  LOG_IT("2. Tao SOCKET ket noi (Client)\n");
-=======
   struct in_addr addr;
   addr.s_addr = *(u_long *) remoteHost->h_addr_list[0];
 
@@ -35,7 +25,6 @@ int main(int argc, char const *argv[])
 int getContentSite(const std::string& host,int port, std::string& path){  
   std::string ip = getIpAddress(host);
   LOG_WT("2. Tao SOCKET ket noi (Client)\n");
->>>>>>> a33909839d6c5b00170e006806cfc9bba49e76c1
   SOCKET sockConnect;
   sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sockConnect == INVALID_SOCKET) {
@@ -43,13 +32,14 @@ int getContentSite(const std::string& host,int port, std::string& path){
     WSACleanup();
     return 1;
   }
+
   LOG_DT("socket() OKIE\n");
-  LOG_IT("3. Chuan bi server ket noi\n");
-  std::string url = "oj.husc.edu.vn";
+  LOG_WT("3. Chuan bi server ket noi\n");
+  //std::string url = "oj.husc.edu.vn";
   sockaddr_in srvService;
   srvService.sin_family = AF_INET;
-  srvService.sin_addr.s_addr = inet_addr("222.255.148.164");
-  srvService.sin_port = htons(80);
+  srvService.sin_addr.s_addr = inet_addr(ip.c_str());
+  srvService.sin_port = htons(port);
   
   // Connect to server.
   int iResult = connect(sockConnect, (SOCKADDR *) &srvService, sizeof (srvService));
@@ -62,15 +52,10 @@ int getContentSite(const std::string& host,int port, std::string& path){
     return 1;
   }
 
-  LOG_WT("Da ket noi server. Nhan enter de nhan noi dung site: %s \n",url.c_str());
+  LOG_WT("Da ket noi server. Nhan enter de nhan noi dung site: %s \n",host.c_str());
   system("pause");
-<<<<<<< HEAD
-
-  std::string request = "GET / HTTP/1.1\r\nHost: " + url + "\r\nConnection: close\r\n\r\n";
-=======
   if (path.empty()) path = "/";
   std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
->>>>>>> a33909839d6c5b00170e006806cfc9bba49e76c1
   
   if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
     LOG_ET("send() failed: %ld\n",WSAGetLastError());
@@ -95,11 +80,6 @@ int getContentSite(const std::string& host,int port, std::string& path){
     return 1;
   }
 
-<<<<<<< HEAD
-  WSACleanup();
-
-  LOG_D("");
-=======
   return 0;
 }
 
@@ -176,7 +156,7 @@ void saveHost2Html(const std::string& host,int port,std::string path, const std:
 
 void saveURL2JPG(const std::string& urlJPG, const std::string& file){
   //thử tìm hiểu đoạn code để save file ảnh
-  LOG_W("Bài tập: lưu file ảnh từ website\n");
+  LOG_I("Bài tập: Lưu file ảnh từ website\n");
   LOG_I("URL [%s]\n",urlJPG.c_str());  
   LOG_E("1. Tìm hiểu các tài liệu về lập trình lưu file JPG (nhị phân) trên google\n");
   LOG_E("2. Giải thích cách làm trong file WORD và đưa lên github trong thư mục của từng thành viên\n");
@@ -260,6 +240,5 @@ int main(int argc, char const *argv[])
   
 
   LOG_D("--------------\n");
->>>>>>> d40460ab9882594b4fac49fa056ed39022f9ac96
   return 0;
 }
