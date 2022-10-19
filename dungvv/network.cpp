@@ -215,8 +215,9 @@ int main(int argc, char const *argv[])
 
   //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
   Uri u = Uri::Parse("http://tuyensinh.husc.edu.vn/category/quyche/");
+  saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
   saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
-  //saveHost2Html(host,80,"/","test.html");
+  
 
   WSACleanup();
 
