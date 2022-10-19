@@ -3,6 +3,8 @@
 #include "winsock2.h"
 #include "windows.h"
 #include "string"
+#include <fstream>
+#include "uri.h"
 
 std::string getIpAddress(const std::string& domain){
   struct hostent *remoteHost;
@@ -126,11 +128,59 @@ std::string getContentSite(const std::string& host,int port, std::string* header
   if (header){
     *header = txt.substr(0,pos);
   }  
-  return std::string(txt.substr(pos + 4));//4ky tu "\r\n\r\n"
+  std::string content = txt.substr(pos + 4);//4ky tu "\r\n\r\n"
+  size_t t1 = content.find("<!DOCTYPE html>");
+  if (t1 != std::string::npos){
+    size_t t2 = content.rfind("</html>");
+    if (t2 == std::string::npos) return std::string(content.substr(t1));
+    return std::string(content.substr(t1,t2 - t1 + 7));
+  }
+  return std::string(content);//4ky tu "\r\n\r\n"
+}
+
+void saveHost2Html(const std::string& host,int port, const std::string& file){
+  std::string header;
+  std::string content = getContentSite(host,port,&header);
+  LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
+  LOG_W("CONTENT SIZE:%zu SAVE[%s]\n",content.size(),file.c_str());
+  std::ofstream fs;
+  fs.open(file.c_str(),std::ofstream::out | std::ofstream::trunc);
+  if (!fs.is_open()) {
+    LOG_ET("fs.open() Error\n");
+    return;
+  }
+  fs.write(content.c_str(),content.size());
+  fs.close();
+}
+
+void showUri(const std::string& url){
+  Uri u = Uri::Parse(url);
+  LOG_I("URL [%s]\n",url.c_str());
+  LOG_W("protocol[%s]\nhost[%s]\nport[%d]\npath[%s]\nquery[%s]\n",
+    u.Protocol.c_str(),
+    u.Host.c_str(),
+    u.getPort(),
+    u.getPath().c_str(),
+    u.QueryString.c_str());
+}
+
+void test_uri(){
+  showUri("https://stackoverflow.com/questions/2616011/easy-way-to-parse-a-url-in-c-cross-platform");
+  showUri("http://localhost:80/foo.html?&q=1:2:3");
+  showUri("https://localhost:80/foo.html?&q=1");
+  showUri("localhost/foo");
+  showUri("https://localhost/foo");
+  showUri("localhost:8080");
+  showUri("localhost?&foo=1");
+  showUri("localhost?&foo=1:2:3");  
+
+  LOG_D("");
 }
 
 int main(int argc, char const *argv[])
 {
+  //test_uri();
+
   LOG_IT("1. Khoi tao WinSocket\n");
   WSADATA wsaData;
   WORD wVersion = MAKEWORD(2,2);
@@ -152,14 +202,18 @@ int main(int argc, char const *argv[])
 
   //LOG_DT("NHAN NOI DUNG TRANG WEB\n");
   //system("pause");
-  const char* host = "oj.husc.edu.vn";
-  std::string header;
-  std::string content = getContentSite(host,80,&header);
+  const char* host = "tuyensinh.husc.edu.vn";
+  // std::string header;
+  // std::string content = getContentSite(host,80,&header);
 
-  LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
-  LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
+  // LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
+  // LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
+
+  saveHost2Html(host,80,"test.html");
 
   WSACleanup();
+
+  
 
   LOG_D("--------------\n");
   return 0;
