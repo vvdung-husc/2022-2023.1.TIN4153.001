@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "..\_COMMON\Log.h"
+#include "..\_COMMON\Utils.h"
 #include "winsock2.h"
 #include "windows.h"
 #include "string"
@@ -21,7 +22,7 @@ std::string getIpAddress(const std::string& domain){
   return ip;
 }
 
-int getContentSite(const std::string& host,int port){
+int getContentSite(const std::string& host,int port, std::string& path){  
   std::string ip = getIpAddress(host);
   LOG_WT("2. Tao SOCKET ket noi (Client)\n");
   SOCKET sockConnect;
@@ -53,8 +54,8 @@ int getContentSite(const std::string& host,int port){
 
   LOG_WT("Da ket noi server. Nhan enter de nhan noi dung site: %s \n",host.c_str());
   system("pause");
-
-  std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
+  if (path.empty()) path = "/";
+  std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
   
   if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
     LOG_ET("send() failed: %ld\n",WSAGetLastError());
@@ -82,7 +83,7 @@ int getContentSite(const std::string& host,int port){
   return 0;
 }
 
-std::string getContentSite(const std::string& host,int port, std::string* header){
+std::string getContentSite(const std::string& host,int port,std::string path, std::string* header){
   std::string ip = getIpAddress(host);
   SOCKET sockConnect;
   sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -103,9 +104,9 @@ std::string getContentSite(const std::string& host,int port, std::string* header
     closesocket(sockConnect);
     return std::string();;
   }
-
-  std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
-  
+  if (path.empty()) path = "/";
+  //std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
+  std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
   if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
     LOG_ET("send() failed: %ld\n",WSAGetLastError());
   }
@@ -138,9 +139,9 @@ std::string getContentSite(const std::string& host,int port, std::string* header
   return std::string(content);//4ky tu "\r\n\r\n"
 }
 
-void saveHost2Html(const std::string& host,int port, const std::string& file){
+void saveHost2Html(const std::string& host,int port,std::string path, const std::string& file){  
   std::string header;
-  std::string content = getContentSite(host,port,&header);
+  std::string content = getContentSite(host,port,path,&header);
   LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
   LOG_W("CONTENT SIZE:%zu SAVE[%s]\n",content.size(),file.c_str());
   std::ofstream fs;
@@ -151,6 +152,14 @@ void saveHost2Html(const std::string& host,int port, const std::string& file){
   }
   fs.write(content.c_str(),content.size());
   fs.close();
+}
+
+void saveURL2JPG(const std::string& urlJPG, const std::string& file){
+  //thử tìm hiểu đoạn code để save file ảnh
+  LOG_I("Bài tập: Lưu file ảnh từ website\n");
+  LOG_I("URL [%s]\n",urlJPG.c_str());  
+  LOG_E("1. Tìm hiểu các tài liệu về lập trình lưu file JPG (nhị phân) trên google\n");
+  LOG_E("2. Giải thích cách làm trong file WORD và đưa lên github trong thư mục của từng thành viên\n");
 }
 
 void showUri(const std::string& url){
@@ -172,14 +181,17 @@ void test_uri(){
   showUri("https://localhost/foo");
   showUri("localhost:8080");
   showUri("localhost?&foo=1");
-  showUri("localhost?&foo=1:2:3");  
+  showUri("localhost?&foo=1:2:3"); 
+  showUri("https://github.com/vvdung-husc/2022-2023.1.TIN4153.001");
+  showUri("http://tuyensinh.husc.edu.vn/");  
 
   LOG_D("");
 }
 
 int main(int argc, char const *argv[])
 {
-  // test_uri();
+  //test_uri();
+  //return 0;
 
   LOG_IT("1. Khoi tao WinSocket\n");
   WSADATA wsaData;
@@ -188,6 +200,7 @@ int main(int argc, char const *argv[])
   if (err != 0) {
     LOG_ET("WSAStartup() loi: %d\n", err);
     return 1;
+
   }
   LOG_DT("Winsock khoi tao thanh cong\n");
 
@@ -209,8 +222,20 @@ int main(int argc, char const *argv[])
   // LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
   // LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
 
-  saveHost2Html(host,80,"test.html");
+  //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
+  std::string url = "http://tuyensinh.husc.edu.vn/wp-content/uploads/2022/08/043775219f9f5dc1048e.jpg";//"http://tuyensinh.iuh.edu.vn/thiSinh";
+  Uri u = Uri::Parse(url);
+  // saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),"/","iuh.html");
+  //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"thisinh.html");
+   
 
+  //showUri("http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG");
+  showUri(url);
+  
+  saveURL2JPG(url, "image.jpg");  
+  
   WSACleanup();
 
   
