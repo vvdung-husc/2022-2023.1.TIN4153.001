@@ -7,6 +7,8 @@
 #include "string"
 #include <fstream>
 #include "uri.h"
+#include <algorithm>
+#include <regex>
 
 std::string getIpAddress(const std::string& domain){
   struct hostent *remoteHost;
@@ -222,21 +224,7 @@ bool save2JPG(const std::string& host,int port,std::string path, FILE* f){
   closesocket(sockConnect);
   
   LOG_WT("IMAGE SIZE:%d/%d\n",bytes,total);
-
-
-  // size_t pos = txt.find("\r\n\r\n");//4 kytu  
-  // //LOG_ET("POS:%zu\n",pos);
-  // if (header){
-  //   *header = txt.substr(0,pos);
-  // }  
-  // std::string content = txt.substr(pos + 4);//4ky tu "\r\n\r\n"
-  // size_t t1 = content.find("<!DOCTYPE html>");
-  // if (t1 != std::string::npos){
-  //   size_t t2 = content.rfind("</html>");
-  //   if (t2 == std::string::npos) return std::string(content.substr(t1));
-  //   return std::string(content.substr(t1,t2 - t1 + 7));
-  // }
-  return true;//4ky tu "\r\n\r\n"
+  return true;
 }
 
 void saveURL2JPG(const std::string& urlJPG, const std::string& file){
@@ -314,18 +302,27 @@ int main(int argc, char const *argv[])
   // LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
 
   //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
-  std::string url = "http://tuyensinh.husc.edu.vn/wp-content/uploads/2022/08/043775219f9f5dc1048e.jpg";
+  //std::string url = "http://daotao.hutech.edu.vn/Upload/file/HuongDanHuyHP/HUONG%20DAN%20HUY%20HP%202022.doc.docx";
+  std::string url = "daotao.hutech.edu.vn/Upload/file/huong%20dan%20dang%20ky%20mon%20hoc%20Video%20web.wmv";
   Uri u = Uri::Parse(url);
   //saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),"/","iuh.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"thisinh.html");
    
-
   //showUri("http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG");
   //showUri(url);
   
-  saveURL2JPG(url, "image.jpg");  
+  std::string fname = "image.jpg";
+  size_t pos = url.rfind("/");
+  if (pos != std::string::npos){
+    fname = url.substr(pos + 1);
+    fname = std::regex_replace(fname, std::regex("%20"), "_");
+    //std::replace( fname.begin(),fname.end(), (char)0x20, '_');
+  }
+  
+
+  saveURL2JPG(url, fname.c_str());  
   
   WSACleanup();
 
