@@ -303,7 +303,7 @@ int main(int argc, char const *argv[])
 
   //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
   //std::string url = "http://daotao.hutech.edu.vn/Upload/file/HuongDanHuyHP/HUONG%20DAN%20HUY%20HP%202022.doc.docx";
-  std::string url = "daotao.hutech.edu.vn/Upload/file/huong%20dan%20dang%20ky%20mon%20hoc%20Video%20web.wmv";
+  std::string url = "http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG";
   Uri u = Uri::Parse(url);
   //saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
