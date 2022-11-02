@@ -3,17 +3,16 @@
 
 int main(int argc, char const *argv[])
 {
-  LOG_D("WELCOME C++. LDNHuy\n");
-  LOG_I("WELCOME C++. LDNHuy\n");
-  LOG_W("WELCOME C++. LDNHuy\n");
-  LOG_E("WELCOME C++. LDNHuy\n");
+  LOG_D("WELCOME C++.HUY\n");
+  LOG_I("WELCOME C++.HUY\n");
+  LOG_W("WELCOME C++.HUY\n");
+  LOG_E("WELCOME C++.HUY\n");
+
+  LOG_DT("WELCOME C++.HUY\n");
+  LOG_IT("WELCOME C++.HUY\n");
+  LOG_WT("WELCOME C++.HUY\n");
+  LOG_ET("WELCOME C++.HUY\n");
+
   LOG_D("");
-
-  LOG_DT("WELCOME C++. LDNHuy\n");
-  LOG_IT("WELCOME C++. LDNHuy\n");
-  LOG_WT("WELCOME C++. LDNHuy\n");
-  LOG_ET("WELCOME C++. LDNHuy\n");
-  LOG_DT("");
-
   return 0;
 }
