@@ -14,6 +14,12 @@ Chuẩn bị
 GIT: sudo apt install git
 G++: sudo apt install build-essential
 
+* VSCode
+- Extention: Remote-SSH
+ + Remote Explorer -> SSH Target
+   ssh <username>@IP -p PORT
+- Clone github
+
 * Tìm cổng đang mở 
 Linux:  netstat -plnt | grep 10022
 Window: netstat -oanp tcp | findstr 10022 
