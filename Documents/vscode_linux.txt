@@ -1,0 +1,12 @@
+Biên dịch C++ trên Linux (Ubuntu)
+Chuẩn bị 
+- VSCode trên Windows 
+- Hệ điều hành Linux
+1. Máy ảo VMWare/VirtualBox/HyperV
+2. Hệ điều hành Linux (Ubuntu 20.04/22.04 LTS)
+3. Cài đặt Linux trên máy ảo
+4. Cài đặt công cụ lập trình C++ trên Linux
+
+- Mã nguồn từ github đã có
+- Sử dụng VSCode (trên Windows host) để mở mã nguồn từ Linux
+- SSH vào Linux và biên dịch 
