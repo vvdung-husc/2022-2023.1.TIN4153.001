@@ -10,3 +10,10 @@ Chuẩn bị
 - Mã nguồn từ github đã có
 - Sử dụng VSCode (trên Windows host) để mở mã nguồn từ Linux
 - SSH vào Linux và biên dịch 
+* Cài đặt git, g++
+GIT: sudo apt install git
+G++: sudo apt install build-essential
+
+* Tìm cổng đang mở 
+Linux:  netstat -plnt | grep 10022
+Window: netstat -oanp tcp | findstr 10022 
