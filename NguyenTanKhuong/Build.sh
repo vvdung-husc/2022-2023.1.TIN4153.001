@@ -1,0 +1,1 @@
+g++ BaiTap1.cpp ../_COMMON/Log.cpp  -o bt1
