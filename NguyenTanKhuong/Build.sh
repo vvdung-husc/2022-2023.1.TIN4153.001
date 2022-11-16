@@ -1,1 +1,1 @@
-g++ BaiTap1.cpp ../_COMMON/Log.cpp  -o bt1
+g++ network.cpp ../_COMMON/Log.cpp ../_COMMON/Utils.cpp -o net
