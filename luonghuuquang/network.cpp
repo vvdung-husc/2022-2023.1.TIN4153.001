@@ -1,40 +1,17 @@
 #include <stdio.h>
-#include "../_COMMON/Log.h"
-#include "../_COMMON/Utils.h"
-
-#ifdef WIN32
-  #include "winsock2.h"
-  #include "ws2tcpip.h"
-  #include "windows.h"
-#else
-  #include <unistd.h>
-  #include <sys/socket.h>
-  #include <arpa/inet.h>
-  #include <sys/types.h>
-  #include <netinet/in.h>
-  #include <netdb.h>
-#endif // DEBUG
-
+#include "..\_COMMON\Log.h"
+#include "..\_COMMON\Utils.h"
+#include "winsock2.h"
+#include "windows.h"
 #include "string"
 #include <fstream>
 #include "uri.h"
-#include <algorithm>
-#include <regex>
-
-#ifndef WIN32
-typedef int SOCKET;
-#define INVALID_SOCKET (int)(~0)
-#define SOCKET_ERROR (-1)
-#define SOCKADDR_IN sockaddr_in
-#define SOCKADDR sockaddr
-#define closesocket(x) close(x)
-#endif
 
 std::string getIpAddress(const std::string& domain){
   struct hostent *remoteHost;
   remoteHost = gethostbyname(domain.c_str());
   if (remoteHost == NULL) {
-    //LOG_ET("gethostbyname() error: %ld\n", WSAGetLastError());
+    LOG_ET("gethostbyname() error: %ld\n", WSAGetLastError());
     return std::string();
   }
   struct in_addr addr;
@@ -51,8 +28,8 @@ int getContentSite(const std::string& host,int port, std::string& path){
   SOCKET sockConnect;
   sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sockConnect == INVALID_SOCKET) {
-    //LOG_ET("socket() loi: %ld\n", WSAGetLastError());
-    //WSACleanup();
+    LOG_ET("socket() loi: %ld\n", WSAGetLastError());
+    WSACleanup();
     return 1;
   }
 
@@ -65,13 +42,13 @@ int getContentSite(const std::string& host,int port, std::string& path){
   srvService.sin_port = htons(port);
   
   // Connect to server.
-  int iResult = connect(sockConnect, (struct sockaddr *) &srvService, sizeof (srvService));
+  int iResult = connect(sockConnect, (SOCKADDR *) &srvService, sizeof (srvService));
   if (iResult == SOCKET_ERROR) {
-    //LOG_ET("connect() error: %ld\n", WSAGetLastError());
+    LOG_ET("connect() error: %ld\n", WSAGetLastError());
     iResult = closesocket(sockConnect);
-    //if (iResult == SOCKET_ERROR)
-        //wprintf(L"closesocket() error: %ld\n", WSAGetLastError());
-    //WSACleanup();
+    if (iResult == SOCKET_ERROR)
+        wprintf(L"closesocket() error: %ld\n", WSAGetLastError());
+    WSACleanup();
     return 1;
   }
 
@@ -81,7 +58,7 @@ int getContentSite(const std::string& host,int port, std::string& path){
   std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
   
   if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
-    //LOG_ET("send() failed: %ld\n",WSAGetLastError());
+    LOG_ET("send() failed: %ld\n",WSAGetLastError());
   }
   
   char buffer[4096];
@@ -98,8 +75,8 @@ int getContentSite(const std::string& host,int port, std::string& path){
 
   iResult = closesocket(sockConnect);
   if (iResult == SOCKET_ERROR) {
-    //wprintf(L"closesocket() error: %ld\n", WSAGetLastError());
-    //WSACleanup();
+    wprintf(L"closesocket() error: %ld\n", WSAGetLastError());
+    WSACleanup();
     return 1;
   }
 
@@ -111,20 +88,19 @@ std::string getContentSite(const std::string& host,int port,std::string path, st
   SOCKET sockConnect;
   sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sockConnect == INVALID_SOCKET) {
-    //LOG_ET("socket() loi: %ld\n", WSAGetLastError());
+    LOG_ET("socket() loi: %ld\n", WSAGetLastError());
     return std::string();
   }
 
   sockaddr_in srvService;
   srvService.sin_family = AF_INET;
-  //srvService.sin_addr.s_addr = inet_addr(ip.c_str());
-  inet_pton(AF_INET,ip.c_str(),&srvService.sin_addr.s_addr);
+  srvService.sin_addr.s_addr = inet_addr(ip.c_str());
   srvService.sin_port = htons(port);
   
   // Connect to server.
-  int iResult = connect(sockConnect, (struct sockaddr *) &srvService, sizeof (srvService));
+  int iResult = connect(sockConnect, (SOCKADDR *) &srvService, sizeof (srvService));
   if (iResult == SOCKET_ERROR) {
-    //LOG_ET("connect() error: %ld\n", WSAGetLastError());
+    LOG_ET("connect() error: %ld\n", WSAGetLastError());
     closesocket(sockConnect);
     return std::string();;
   }
@@ -132,7 +108,7 @@ std::string getContentSite(const std::string& host,int port,std::string path, st
   //std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
   std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
   if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
-    //LOG_ET("send() failed: %ld\n",WSAGetLastError());
+    LOG_ET("send() failed: %ld\n",WSAGetLastError());
   }
   
   std::string txt;
@@ -178,88 +154,12 @@ void saveHost2Html(const std::string& host,int port,std::string path, const std:
   fs.close();
 }
 
-bool save2JPG(const std::string& host,int port,std::string path, FILE* f){
-  std::string ip = getIpAddress(host);
-  SOCKET sockConnect;
-  sockConnect = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (sockConnect == INVALID_SOCKET) {
-    //LOG_ET("socket() loi: %ld\n", WSAGetLastError());
-    return false;
-  }
-
-  sockaddr_in srvService;
-  srvService.sin_family = AF_INET;
-  //srvService.sin_addr.s_addr = inet_addr(ip.c_str());
-  inet_pton(AF_INET,ip.c_str(),&srvService.sin_addr.s_addr);
-  srvService.sin_port = htons(port);
-  
-  // Connect to server.
-  int iResult = connect(sockConnect, (struct sockaddr *) &srvService, sizeof (srvService));
-  if (iResult == SOCKET_ERROR) {
-    //LOG_ET("connect() error: %ld\n", WSAGetLastError());
-    closesocket(sockConnect);
-    return false;
-  }
-  if (path.empty()) path = "/";
-  //std::string request = "GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
-  std::string request = StringFormat("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",path.c_str(),host.c_str());
-  if(send(sockConnect, request.c_str(), strlen(request.c_str())+1, 0) < 0){
-    //LOG_ET("send() failed: %ld\n",WSAGetLastError());
-  }
-  
-  std::string header;
-  char buffer[4097];
-  int n, total = 0, bytes = 0;
-  std::string raw_site;
-  bool isHeader_completed = false;
-  while((n = recv(sockConnect, buffer, 4096, 0)) > 0){
-    total += n;
-
-    if (!isHeader_completed){
-      
-      buffer[n] = 0;
-      
-      std::string t(buffer);
-      size_t pos = t.find("\r\n\r\n");//4 kytu 
-      if (pos != std::string::npos){
-        isHeader_completed = true;
-
-        header.append(t.substr(0,pos));
-        bytes += (total - ((int)pos + 4));
-        LOG_D("[HEADER ]==========>\n%s\n",header.c_str());
-        int size_header = (int)header.size();
-        LOG_D("HEADER SIZE:%d bytes:%d Total:%d\n",size_header,bytes,total);
-        if (f) fwrite (&buffer[pos + 4] , sizeof(char), (size_t)bytes, f);
-      }
-      else{
-        header.append(buffer);
-      }            
-    }
-    else{
-      bytes += n;
-      if (f) fwrite (buffer , sizeof(char), (size_t)n, f);
-    }
-  }//while((n = recv(sockConnect, buffer, 4096, 0)) > 0){
-
-  closesocket(sockConnect);
-  
-  LOG_WT("IMAGE SIZE:%d/%d\n",bytes,total);
-  return true;
-}
-
 void saveURL2JPG(const std::string& urlJPG, const std::string& file){
   //thử tìm hiểu đoạn code để save file ảnh
   LOG_I("Bài tập: Lưu file ảnh từ website\n");
   LOG_I("URL [%s]\n",urlJPG.c_str());  
   LOG_E("1. Tìm hiểu các tài liệu về lập trình lưu file JPG (nhị phân) trên google\n");
   LOG_E("2. Giải thích cách làm trong file WORD và đưa lên github trong thư mục của từng thành viên\n");
-
-  FILE *f = fopen(file.c_str(),"wb");
-
-  Uri u = Uri::Parse(urlJPG);
-  save2JPG(u.Host.c_str(),u.getPort(),u.getPath(),f);
-
-  fclose(f);
 }
 
 void showUri(const std::string& url){
@@ -292,7 +192,7 @@ int main(int argc, char const *argv[])
 {
   //test_uri();
   //return 0;
-#ifdef WIN32
+
   LOG_IT("1. Khoi tao WinSocket\n");
   WSADATA wsaData;
   WORD wVersion = MAKEWORD(2,2);
@@ -302,21 +202,19 @@ int main(int argc, char const *argv[])
     return 1;
   }
   LOG_DT("Winsock khoi tao thanh cong\n");
-#endif // DEBUG
-
 
   //getContentSite_test();
 
   //const char* domain = "oj.husc.edu.vn";
   //std::string ip = getIpAddress(domain);
-  // getIpAddress("oj.husc.edu.vn");
-  // getIpAddress("google.com");
-  // getIpAddress("facebook.com");
-  // getIpAddress("vtv.vn");
+  getIpAddress("oj.husc.edu.vn");
+  getIpAddress("google.com");
+  getIpAddress("facebook.com");
+  getIpAddress("vtv.vn");
 
   //LOG_DT("NHAN NOI DUNG TRANG WEB\n");
   //system("pause");
-  //const char* host = "tuyensinh.husc.edu.vn";
+  const char* host = "tuyensinh.husc.edu.vn";
   // std::string header;
   // std::string content = getContentSite(host,80,&header);
 
@@ -324,32 +222,21 @@ int main(int argc, char const *argv[])
   // LOG_I("[CONTENT]==========>\n%s\n",content.c_str());
 
   //showUri("http://tuyensinh.husc.edu.vn/category/quyche/");
-  std::string url = "http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG";
-  //std::string url = "http://daotao.hutech.edu.vn/Upload/file/HuongDanHuyHP/HUONG%20DAN%20HUY%20HP%202022.doc.docx";
-  //std::string url = "daotao.hutech.edu.vn/Upload/file/huong%20dan%20dang%20ky%20mon%20hoc%20Video%20web.wmv";
+  std::string url = "http://tuyensinh.husc.edu.vn/wp-content/uploads/2022/08/043775219f9f5dc1048e.jpg";//"http://tuyensinh.iuh.edu.vn/thiSinh";
   Uri u = Uri::Parse(url);
   //saveHost2Html(u.Host.c_str(),u.getPort(),"/","test.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"quyche.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),"/","iuh.html");
   //saveHost2Html(u.Host.c_str(),u.getPort(),u.getPath(),"thisinh.html");
    
+
   //showUri("http://iuh.edu.vn/Resource/Upload2/Image/album/toan%20canh%20xl.JPG");
-  //showUri(url);
+  showUri(url);
   
-  std::string fname = "image.jpg";
-  size_t pos = url.rfind("/");
-  if (pos != std::string::npos){
-    fname = url.substr(pos + 1);
-    fname = std::regex_replace(fname, std::regex("%20"), "_");
-    //std::replace( fname.begin(),fname.end(), (char)0x20, '_');
-  }
+  saveURL2JPG(url, "image.jpg");  
   
-
-  saveURL2JPG(url, fname.c_str());  
-
-#ifdef WIN32  
   WSACleanup();
-#endif
+
   
 
   LOG_D("--------------\n");
