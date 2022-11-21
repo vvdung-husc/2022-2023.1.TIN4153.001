@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "..\_COMMON\Log.h"
+#include "../_COMMON/Log.h"
 
 int main(int argc, char const *argv[])
 {

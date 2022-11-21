@@ -95,7 +95,7 @@ int getContentSite(const std::string& host,int port, std::string& path){
     return 1;
   }
 
-<<<<<<< HEAD
+// <<<<<<< HEAD
   WSACleanup();
 
   LOG_D("");
