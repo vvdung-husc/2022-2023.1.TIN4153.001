@@ -13,6 +13,8 @@
 #define yLED  26
 #define gLED  25
 
+#define LIGHT_SENSOR_PIN 13
+
 //1000 ms = 1 seconds
 uint rTIME = 7000;   //5 seconds
 uint yTIME = 5000;
@@ -21,16 +23,17 @@ uint gTIME = 10000;
 ulong currentMiliseconds = 0;
 bool switchDisplay = true;
 
-ulong ledTimeStart = 0;
+
 ulong nextTimeTotal = 0;
 int currentLED = rLED;
-int tmCounter = 0;
-ulong counterTimeStart = 0;
+
+
+int darkThreshold = 1000;
 
 TM1637Display display(CLK, DIO);
 
 bool IsReady(ulong &ulTimer, uint32_t milisecond);
-void cbSwicthDisplay(bool state);
+void SwitchDisplay();
 void NonBlocking_Traffic_Light_TM1637();
 
 void setup() {
@@ -46,25 +49,72 @@ void setup() {
 
 
   display.setBrightness(7);
-  cbSwicthDisplay(true);
-
+  digitalWrite(SWITCH_LED, HIGH);
+  
   digitalWrite(yLED, LOW);
   digitalWrite(gLED, LOW);
   digitalWrite(rLED, HIGH);
   currentLED = rLED;
   nextTimeTotal += rTIME;
-  tmCounter = (rTIME / 1000) -1;
+  
   
   Serial.println("== START ==>");
   Serial.print("1. RED    => GREEN  "); Serial.println(nextTimeTotal);  
+}
+
+bool isDark(){
+  static ulong ldrTimeStart = 0;
+  static int lastValue = darkThreshold;
+  static bool darkNow = false;
+
+  if (!IsReady(ldrTimeStart, 1000)) return darkNow;
+  int analogValue = analogRead(LIGHT_SENSOR_PIN);
+  if (lastValue == analogValue) return darkNow;
+
+  if (analogValue < darkThreshold) {
+    if (!darkNow){      
+      darkNow = true;
+      digitalWrite(currentLED, LOW);
+      display.clear();
+      Serial.print("DARK  value = ");
+      Serial.println(analogValue);   // the raw analog reading  
+    }        
+  }
+  else{
+    if (darkNow){
+      darkNow = false;
+      digitalWrite(yLED, LOW);
+      Serial.print("LIGHT value = ");
+      Serial.println(analogValue);   // the raw analog reading
+    }
+  }
+
+  lastValue = analogValue;
+  return darkNow;  
+}
+
+void Led_Yellow_Blink(){
+  static ulong lastTime = 0;
+  static bool isLED_ON = false;
+  if (!IsReady(lastTime, 1000)) return;
+  if (!isLED_ON)
+  {
+    digitalWrite(yLED, HIGH); // Bật LED        
+  }
+  else
+  {
+    digitalWrite(yLED, LOW); // Tắt LED    
+  }
+  isLED_ON = !isLED_ON;
 }
 
 void loop() {
 
   currentMiliseconds = millis();
   SwitchDisplay();  
-  NonBlocking_Traffic_Light_TM1637();
-
+  if (!isDark()) NonBlocking_Traffic_Light_TM1637();
+  else Led_Yellow_Blink();
+  
 }
 
 bool IsReady(ulong &ulTimer, uint32_t milisecond)
@@ -73,16 +123,6 @@ bool IsReady(ulong &ulTimer, uint32_t milisecond)
     return false;
   ulTimer = currentMiliseconds;
   return true;
-}
-
-void cbSwicthDisplay(bool state) {
-  if (state){
-    digitalWrite(SWITCH_LED, HIGH);
-  }
-  else{
-    digitalWrite(SWITCH_LED, LOW);
-    display.clear();
-  }
 }
 
 void SwitchDisplay() {
@@ -96,10 +136,11 @@ void SwitchDisplay() {
     if (t == LOW){
       if (switchDisplay){
         Serial.println("Switching display OFF");
-        cbSwicthDisplay(false);        
+        digitalWrite(SWITCH_LED, LOW); 
+        display.clear();
       }
       else{        
-        cbSwicthDisplay(true);
+        digitalWrite(SWITCH_LED, HIGH);
         Serial.println("Switching display ON");
       }
       switchDisplay = !switchDisplay;
@@ -108,6 +149,10 @@ void SwitchDisplay() {
   }      
 }
 void NonBlocking_Traffic_Light_TM1637(){
+  static ulong ledTimeStart = 0;
+  static ulong counterTimeStart = 0;
+  static uint tmCounter = (rTIME / 1000) -1;
+
   bool bShowCounter = false;
   switch (currentLED) {
     case rLED: // Đèn đỏ: 5 giây
